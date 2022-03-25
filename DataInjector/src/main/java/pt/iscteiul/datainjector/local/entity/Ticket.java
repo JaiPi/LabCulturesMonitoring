@@ -1,4 +1,4 @@
-package pt.iscteiul.datainjector.model;
+package pt.iscteiul.datainjector.local.entity;
 
 import lombok.*;
 
@@ -7,14 +7,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Getter
-@Setter
-@ToString
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 
 @Entity
-@Table(name = "Ticket")
+@Table(name = "ticket")
 public class Ticket {
     @Id
     @GeneratedValue

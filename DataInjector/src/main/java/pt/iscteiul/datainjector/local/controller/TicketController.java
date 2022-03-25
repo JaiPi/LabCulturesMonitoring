@@ -1,9 +1,9 @@
-package pt.iscteiul.datainjector.controller;
+package pt.iscteiul.datainjector.local.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import pt.iscteiul.datainjector.dao.TicketDao;
-import pt.iscteiul.datainjector.model.Ticket;
+import pt.iscteiul.datainjector.local.entity.Ticket;
+import pt.iscteiul.datainjector.local.repository.TicketRepository;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import java.util.List;
 @RequestMapping("/ticket")
 public class TicketController {
     @Autowired
-    private TicketDao ticketDao;
+    private TicketRepository ticketDao;
 
     @PostMapping("/bookTicket")
     public String bookTicket(@RequestBody List<Ticket> tickets) {

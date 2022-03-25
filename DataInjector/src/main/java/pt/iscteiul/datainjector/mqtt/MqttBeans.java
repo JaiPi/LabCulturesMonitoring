@@ -1,4 +1,4 @@
-package pt.iscteiul.datainjector;
+package pt.iscteiul.datainjector.mqtt;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.context.annotation.Bean;
