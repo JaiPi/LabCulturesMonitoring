@@ -1,4 +1,4 @@
-package pt.iscteiul.datainjector;
+package pt.iscteiul.datainjector.mqtt;
 
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.mqtt.support.MqttHeaders;
