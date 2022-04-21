@@ -8,13 +8,13 @@ import pt.iscteiul.datainjector.cloud.repository.ZoneRepository;
 import java.util.List;
 
 @RestController
-@RequestMapping("/zone")
+@RequestMapping("/cloud")
 public class ZoneController {
     @Autowired
-    private ZoneRepository zoneDao;
+    private ZoneRepository zoneRepository;
 
     @GetMapping("/getZones")
     public List<Zone> getTicket() {
-        return (List<Zone>) zoneDao.findAll();
+        return (List<Zone>) zoneRepository.findAll();
     }
 }
