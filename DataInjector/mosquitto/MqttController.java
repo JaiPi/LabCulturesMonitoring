@@ -1,4 +1,4 @@
-package pt.iscteiul.datainjector.controller;
+package pt.iscteiul.datainjector.mqtt.mosquitto;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import pt.iscteiul.datainjector.MqttGateway;
+import pt.iscteiul.datainjector.mqtt.mosquitto.MqttGateway;
 
 @RestController
 @RequestMapping("/mqtt")

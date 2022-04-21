@@ -8,14 +8,14 @@ import pt.iscteiul.datainjector.cloud.repository.SensorRepository;
 import java.util.List;
 
 @RestController
-@RequestMapping("/sensor")
+@RequestMapping("/cloud")
 public class SensorController {
     @Autowired
-    private SensorRepository sensorDao;
+    private SensorRepository sensorRepository;
 
     @GetMapping("/getSensors")
     public List<Sensor> getTicket() {
-        return (List<Sensor>) sensorDao.findAll();
+        return (List<Sensor>) sensorRepository.findAll();
     }
 
 

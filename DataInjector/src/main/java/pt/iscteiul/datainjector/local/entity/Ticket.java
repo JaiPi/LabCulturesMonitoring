@@ -2,10 +2,7 @@ package pt.iscteiul.datainjector.local.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Data
 @NoArgsConstructor
@@ -15,7 +12,7 @@ import javax.persistence.Table;
 @Table(name = "ticket")
 public class Ticket {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private double amount;
     private String category;
