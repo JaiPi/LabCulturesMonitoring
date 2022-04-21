@@ -21,3 +21,17 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Sensors
+!Sensores/DataBridgeH1/*
+!Sensores/DataBridgeH2/*
+!Sensores/DataBridgeL1/*
+!Sensores/DataBridgeL2/*
+!Sensores/DataBridgeT1/*
+!Sensores/DataBridgeT2/*
+!Sensores/medicoes/DataBridgeH1/*
+!Sensores/medicoes/DataBridgeH2/*
+!Sensores/medicoes/DataBridgeL1/*
+!Sensores/medicoes/DataBridgeL2/*
+!Sensores/medicoes/DataBridgeT1/*
+!Sensores/medicoes/DataBridgeT2/*
