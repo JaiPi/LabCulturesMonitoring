@@ -6,6 +6,7 @@ import pt.iscteiul.datadispatcher.model.SensorData;
 import pt.iscteiul.datadispatcher.mqtt.hivemq.HiveMQ;
 import pt.iscteiul.datadispatcher.repository.SensorRepository;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,17 +28,26 @@ public class SensorController {
     }
 
     @GetMapping("/getSensorData")
-    public List<SensorData> getBooks() {
+    public List<SensorData> getAllSensorData() {
         return repository.findAll();
     }
 
     @GetMapping("/getSensorData/{id}")
-    public Optional<SensorData> getBook(@PathVariable String id) {
+    public Optional<SensorData> getSensorDataById(@PathVariable String id) {
         return repository.findById(id);
     }
 
     @DeleteMapping("/deleteSensorData/{id}")
-    public void deleteBook(@PathVariable String id) {
+    public void deleteSensorDataById(@PathVariable String id) {
         repository.deleteById(id);
+    }
+
+    @GetMapping("/sendSensorData")
+    public List<SensorData> sendAllSensorData() {
+        List<SensorData> all =  repository.findAll();
+        System.out.println(all.get(4));
+        SensorData medicao = all.get(4);
+        hiveMQ.messageSender(medicao);
+        return repository.findAll();
     }
 }

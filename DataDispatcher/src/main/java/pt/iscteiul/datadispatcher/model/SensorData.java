@@ -16,8 +16,8 @@ public class SensorData {
 
     @Id
     private String id;
-    private String zona;
-    private String sensor;
-    private String data;
-    private String medicao;
+    private String Zona;
+    private String Sensor;
+    private String Data;
+    private String Medicao;
 }
