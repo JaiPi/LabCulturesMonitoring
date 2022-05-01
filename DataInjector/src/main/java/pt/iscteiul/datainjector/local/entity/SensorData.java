@@ -19,7 +19,8 @@ public class SensorData {
     private int IDMedicao;
     private int IDZona;
     private String IDSensor;
-    private Timestamp Datahora;
+    @Column(name="DataHora")
+    private Timestamp datahora;
     private float Leitura;
     private int Valido;
 }

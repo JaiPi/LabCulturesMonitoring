@@ -3,16 +3,15 @@ package pt.iscteiul.datainjector.local.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.datainjector.local.entity.SensorData;
-import pt.iscteiul.datainjector.local.repository.TestRepo;
+import pt.iscteiul.datainjector.local.repository.SensorDataRepository;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
 @RequestMapping("/local")
 public class SensorDataController {
     @Autowired
-    private TestRepo sensorRepository;
+    private SensorDataRepository sensorRepository;
 
     @PostMapping("/saveSensorData")
     public String saveSensorData(@RequestBody SensorData sensorData) {
@@ -25,11 +24,11 @@ public class SensorDataController {
         return (List<SensorData>) sensorRepository.findAll();
     }
 
-//    @GetMapping("/lastDate")
-//    public Timestamp lastDate() {
-//
-//        return sensorRepository.findTopByOrderByIdDesc();
-//    }
+    @GetMapping("/lastDate")
+    public SensorData lastDate() {
+
+        return sensorRepository.findTopByOrderByDatahoraDesc();
+    }
 
 
 }
