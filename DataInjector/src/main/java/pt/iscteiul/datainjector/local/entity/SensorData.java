@@ -4,10 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Data
@@ -15,13 +13,13 @@ import java.util.Date;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "sensordata")
+@Table(name = "medicao")
 public class SensorData {
     @Id
-    @GeneratedValue
-    private int id;
-    private String zona;
-    private String sensor;
-    private Date data;
-    private float medicao;
+    private int IDMedicao;
+    private int IDZona;
+    private String IDSensor;
+    private Timestamp Datahora;
+    private float Leitura;
+    private int Valido;
 }

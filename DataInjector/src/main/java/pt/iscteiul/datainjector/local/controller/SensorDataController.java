@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.datainjector.local.entity.SensorData;
 import pt.iscteiul.datainjector.local.repository.TestRepo;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @RestController
@@ -16,13 +17,19 @@ public class SensorDataController {
     @PostMapping("/saveSensorData")
     public String saveSensorData(@RequestBody SensorData sensorData) {
         sensorRepository.save(sensorData);
-        return "Add data with id: " + sensorData.getId();
+        return "Add data with id: " + sensorData.getIDMedicao();
     }
 
     @GetMapping("/getSensorData")
     public List<SensorData> getSensorData() {
         return (List<SensorData>) sensorRepository.findAll();
     }
+
+//    @GetMapping("/lastDate")
+//    public Timestamp lastDate() {
+//
+//        return sensorRepository.findTopByOrderByIdDesc();
+//    }
 
 
 }
