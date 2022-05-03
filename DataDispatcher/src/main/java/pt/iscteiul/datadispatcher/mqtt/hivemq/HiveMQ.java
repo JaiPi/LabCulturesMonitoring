@@ -12,7 +12,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class HiveMQ {
 
     public Mqtt5BlockingClient mqtt5BlockingClient() {
-        final String host = "f51690c7ab224fb6bcf0063326430322.s1.eu.hivemq.cloud";
+        final String host = "1b741dfb7dbc441fb203b6490be6b541.s1.eu.hivemq.cloud";
         final String username = "group10";
         final String password = "piSID2022";
 
