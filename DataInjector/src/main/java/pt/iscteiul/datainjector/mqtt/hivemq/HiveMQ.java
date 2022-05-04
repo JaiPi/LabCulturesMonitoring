@@ -25,6 +25,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Service
 public class HiveMQ {
+    @Autowired
+    SensorDataController sa;
 
     public HiveMQ() {
 
@@ -64,18 +66,27 @@ public class HiveMQ {
             System.out.println(json.toString());
             System.out.println(json.get("Medicao").toString().replace("\"", ""));
 
-            String pattern = "MMM dd, yyyy HH:mm:ss.SSSSSSSS";
-            String timestampAsString = "Nov 12, 2018 13:02:56.12345678";
+            String newDate = json.get("Data").toString().
+                    replace("\"", "").
+                    replace("T", " ").
+                    replace("Z", "");
+
+            String pattern = "yyyy-MM-dd HH:mm:ss";
+            String timestampAsString = newDate;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
             LocalDateTime localDateTime = LocalDateTime.from(formatter.parse(timestampAsString));
 
             Timestamp timestamp = Timestamp.valueOf(localDateTime);
 
-            SensorData sd = new SensorData(123, 12, json.get("Sensor").toString().replace("\"", ""), timestamp, Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue(), 0);
+            SensorData sd = new SensorData();
+            sd.setIDZona(12);
+            sd.setIDSensor(json.get("Sensor").toString().replace("\"", ""));
+            sd.setDatahora(timestamp);
+            sd.setLeitura(Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue());
+            sd.setValido(0);
 
             System.out.println(sd);
-            SensorDataController as = new SensorDataController();
-            as.saveSensorData(sd);
+            sa.saveSensorData(sd);
 
             //disconnect the client after a message was received
 //            client.disconnect();

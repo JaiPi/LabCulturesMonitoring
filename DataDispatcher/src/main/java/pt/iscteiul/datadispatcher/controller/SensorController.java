@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.*;
+import pt.iscteiul.datadispatcher.DataValidator;
 import pt.iscteiul.datadispatcher.model.SensorData;
 import pt.iscteiul.datadispatcher.mqtt.hivemq.HiveMQ;
 import pt.iscteiul.datadispatcher.repository.SensorRepository;
@@ -33,7 +34,7 @@ public class SensorController {
     @PostMapping("/addSensorData")
     public String saveBook(@RequestBody SensorData medicao) {
         repository.save(medicao);
-        hiveMQ.messageSender(medicao);
+        //hiveMQ.messageSender(medicao);
         return "Add data with id: " + medicao.getId();
     }
 
@@ -53,11 +54,11 @@ public class SensorController {
     }
 
     @GetMapping("/sendSensorData")
-    public List<SensorData> sendAllSensorData() {
+    public List<SensorData> sendSensorData() {
         List<SensorData> all =  repository.findAll();
         System.out.println(all.get(4));
         SensorData medicao = all.get(4);
-        hiveMQ.messageSender(medicao);
+        //hiveMQ.messageSender(medicao);
         return repository.findAll();
     }
 
@@ -72,11 +73,15 @@ public class SensorController {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println(response.body());
 
-        for (SensorData sd: repository.findSensorDataByDataAfter(response.body() ) ){
+        extractDataFromMongo(response.body());
+
+        return response.body();
+    }
+
+    public void extractDataFromMongo(String date) {
+        for (SensorData sd: repository.findSensorDataByDataAfter(date) ){
             System.out.println(sd.getMedicao());
             hiveMQ.messageSender(sd);
         };
-
-        return response.body();
     }
 }
