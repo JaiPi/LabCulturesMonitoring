@@ -1,11 +1,15 @@
 package pt.iscteiul.datainjector.local.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.datainjector.local.entity.SensorData;
 import pt.iscteiul.datainjector.local.repository.SensorDataRepository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -16,7 +20,6 @@ public class SensorDataController {
 
     @PostMapping("/saveSensorData")
     public String saveSensorData(@RequestBody SensorData sensorData) {
-        System.out.println(sensorData.getIDSensor());
         sensorRepository.save(sensorData);
         return "Add data with id: " + sensorData.getIDMedicao();
     }
@@ -29,6 +32,33 @@ public class SensorDataController {
     @GetMapping("/lastSensorDataEntry")
     public Timestamp lastSensorDataEntry() {
         return sensorRepository.findTopByOrderByDatahoraDesc().getDatahora();
+    }
+
+    @PostMapping("/receiveSensorData")
+    public void receiveSensorData(@RequestBody String message) {
+        JsonObject json = new Gson().fromJson(message, JsonObject.class);
+        System.out.println(json.toString());
+
+        String newDate = json.get("Data").toString().
+                replace("\"", "").
+                replace("T", " ").
+                replace("Z", "");
+
+        String pattern = "yyyy-MM-dd HH:mm:ss";
+        String timestampAsString = newDate;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        LocalDateTime localDateTime = LocalDateTime.from(formatter.parse(timestampAsString));
+
+        Timestamp timestamp = Timestamp.valueOf(localDateTime);
+
+        SensorData sensorData = new SensorData();
+        sensorData.setIDZona(12);
+        sensorData.setIDSensor(json.get("Sensor").toString().replace("\"", ""));
+        sensorData.setDatahora(timestamp);
+        sensorData.setLeitura(Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue());
+        sensorData.setValido(0);
+
+        saveSensorData(sensorData);
     }
 
 

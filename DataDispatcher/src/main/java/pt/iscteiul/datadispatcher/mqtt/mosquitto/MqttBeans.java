@@ -1,4 +1,4 @@
-package pt.iscteiul.datainjector.mqtt.mosquitto;
+package pt.iscteiul.datadispatcher.mqtt.mosquitto;
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.context.annotation.Bean;
@@ -17,16 +17,18 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
 
+
 @Configuration
 public class MqttBeans {
 
-    public MqttPahoClientFactory mqttPahoClientFactory () {
+    @Bean
+    public MqttPahoClientFactory mqttClientFactory() {
         DefaultMqttPahoClientFactory factory = new DefaultMqttPahoClientFactory();
         MqttConnectOptions options = new MqttConnectOptions();
 
-        options.setServerURIs(new String[] {"tcp://localhost:1883"});
+        options.setServerURIs(new String[] { "tcp://localhost:1883" });
         options.setUserName("admin");
-        String pass = "123";
+        String pass = "admin";
         options.setPassword(pass.toCharArray());
         options.setCleanSession(true);
 
@@ -34,50 +36,55 @@ public class MqttBeans {
 
         return factory;
     }
+//    @Bean
+//    public MessageChannel mqttInputChannel() {
+//        return new DirectChannel();
+//    }
+//
+//    @Bean
+//    public MessageProducer inbound() {
+//        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn",
+//                mqttClientFactory(), "#");
+//
+//        adapter.setCompletionTimeout(5000);
+//        adapter.setConverter(new DefaultPahoMessageConverter());
+//        adapter.setQos(2);
+//        adapter.setOutputChannel(mqttInputChannel());
+//        return adapter;
+//    }
+//
+//
+//    @Bean
+//    @ServiceActivator(inputChannel = "mqttInputChannel")
+//    public MessageHandler handler() {
+//        return new MessageHandler() {
+//
+//            @Override
+//            public void handleMessage(Message<?> message) throws MessagingException {
+//                String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
+//                if(topic.equals("myTopic")) {
+//                    System.out.println("This is the topic");
+//                }
+//                System.out.println(message.getPayload());
+//            }
+//
+//        };
+//    }
 
-    @Bean
-    public MessageChannel mqttInputChannel() {
-        return new DirectChannel();
-    }
-
-    @Bean
-    public MessageProducer inbound() {
-        MqttPahoMessageDrivenChannelAdapter adapter = new MqttPahoMessageDrivenChannelAdapter("serverIn", mqttPahoClientFactory(), "testtopic/sid2022");
-
-        adapter.setCompletionTimeout(5000);
-        adapter.setConverter(new DefaultPahoMessageConverter());
-        adapter.setQos(0);
-        adapter.setOutputChannel(mqttInputChannel());
-        return adapter;
-    }
-
-    @Bean
-    @ServiceActivator(inputChannel="mqttInputChannel")
-    public MessageHandler handler() {
-        return new MessageHandler() {
-            @Override
-            public void handleMessage(Message<?> message) throws MessagingException {
-                String topic = message.getHeaders().get(MqttHeaders.RECEIVED_TOPIC).toString();
-                if (topic.equals("myTopic")) {
-                    System.out.println("This is out topic");
-                }
-                System.out.println(message.getPayload());
-            }
-        };
-    }
 
     @Bean
     public MessageChannel mqttOutboundChannel() {
         return new DirectChannel();
     }
-
     @Bean
     @ServiceActivator(inputChannel = "mqttOutboundChannel")
     public MessageHandler mqttOutbound() {
-        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut", mqttPahoClientFactory());
-
+        //clientId is generated using a random number
+        MqttPahoMessageHandler messageHandler = new MqttPahoMessageHandler("serverOut", mqttClientFactory());
         messageHandler.setAsync(true);
         messageHandler.setDefaultTopic("#");
+        messageHandler.setDefaultRetained(false);
         return messageHandler;
     }
+
 }

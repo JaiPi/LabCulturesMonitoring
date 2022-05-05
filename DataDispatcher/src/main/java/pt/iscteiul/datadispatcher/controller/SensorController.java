@@ -2,12 +2,14 @@ package pt.iscteiul.datadispatcher.controller;
 
 import com.google.gson.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.datadispatcher.DataValidator;
 import pt.iscteiul.datadispatcher.model.SensorData;
-import pt.iscteiul.datadispatcher.mqtt.hivemq.HiveMQ;
+import pt.iscteiul.datadispatcher.mqtt.mosquitto.MqttController;
 import pt.iscteiul.datadispatcher.repository.SensorRepository;
 
 import java.beans.JavaBean;
@@ -29,7 +31,10 @@ public class SensorController {
     private SensorRepository repository;
 
     @Autowired
-    HiveMQ hiveMQ;
+    MqttController mqttController;
+
+    @Autowired
+    private Environment env;
 
     @PostMapping("/addSensorData")
     public String saveBook(@RequestBody SensorData medicao) {
@@ -78,10 +83,28 @@ public class SensorController {
         return response.body();
     }
 
-    public void extractDataFromMongo(String date) {
-        for (SensorData sd: repository.findSensorDataByDataAfter(date) ){
-            System.out.println(sd.getMedicao());
-            hiveMQ.messageSender(sd);
+    public void sendSensorDataDirect(SensorData sensorData) throws IOException, InterruptedException {
+        String requestBody = new Gson().toJson(sensorData);
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:9090/local/receiveSensorData"))
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<String> response = client.send(request,
+                HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.body());
+    }
+
+    public void extractDataFromMongo(String date) throws IOException, InterruptedException {
+//        DataValidator dataValidator = new DataValidator();
+        for (SensorData sensorData: repository.findSensorDataByDataAfter(date) ){
+            String mqtt =  env.getProperty("mqtt");
+            if (mqtt.equals("true"))
+                mqttController.publish(sensorData);
+            else
+                sendSensorDataDirect(sensorData);
         };
     }
 }

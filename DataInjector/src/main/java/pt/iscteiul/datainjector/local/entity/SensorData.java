@@ -23,4 +23,5 @@ public class SensorData {
     private Timestamp datahora;
     private float Leitura;
     private int Valido;
+
 }
