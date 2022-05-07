@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.alertgenerator.dao.AlertDao;
 import pt.iscteiul.alertgenerator.model.Alert;
+import pt.iscteiul.alertgenerator.service.AlertService;
 
 import java.util.List;
 
@@ -14,6 +15,9 @@ public class AlertController {
     @Autowired
     private AlertDao alertDao;
 
+    @Autowired
+    AlertService alertService;
+
     @PostMapping("/saveAlert")
     public String saveAlert(@RequestBody Alert alert) {
         alertDao.save(alert);
@@ -23,5 +27,17 @@ public class AlertController {
     @GetMapping("/getAlerts")
     public List<Alert> getAlerts() {
         return (List<Alert>) alertDao.findAll();
+    }
+
+    @GetMapping("/generateRealTimeAlerts")
+    public String generateRealTimeAlerts() throws InterruptedException {
+        alertService.generateRealTimeAlert();
+        return "Generating Real Time Alerts";
+    }
+
+    @GetMapping("/generatePredictiveAlerts")
+    public String generatePredictiveAlerts() throws InterruptedException {
+        alertService.generatePredictiveAlert();
+        return "Generating Predictive Alerts";
     }
 }

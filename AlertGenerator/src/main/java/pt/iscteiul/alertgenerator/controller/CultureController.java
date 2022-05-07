@@ -21,4 +21,5 @@ public class CultureController {
     public List<Culture> getAllCultures(Culture culture) {
         return (List<Culture>) cultureDao.findAll();
     }
+
 }
