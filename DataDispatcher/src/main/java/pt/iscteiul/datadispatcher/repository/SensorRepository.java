@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface SensorRepository extends MongoRepository<SensorData, String> {
 
-    @Query(value = "{'Data':{$gte: ?0}}")
-    List<SensorData> findSensorDataByDataAfter(String date);
+    @Query(value = "{Data: {$gt: ?0, $ne: ?1}}")
+    List<SensorData> func(String date0, String date1);
 }

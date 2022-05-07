@@ -2,26 +2,21 @@ package pt.iscteiul.datadispatcher.controller;
 
 import com.google.gson.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.*;
-import pt.iscteiul.datadispatcher.DataValidator;
 import pt.iscteiul.datadispatcher.model.SensorData;
 import pt.iscteiul.datadispatcher.mqtt.mosquitto.MqttController;
 import pt.iscteiul.datadispatcher.repository.SensorRepository;
 
-import java.beans.JavaBean;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.sql.Timestamp;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+
+import static java.lang.Thread.sleep;
 
 @RestController
 @RequestMapping("/sensor")
@@ -35,6 +30,31 @@ public class SensorController {
 
     @Autowired
     private Environment env;
+
+    private boolean continueDispatching;
+
+    @RequestMapping("/startDataDispatcher")
+    public String startDataDispatcher() throws IOException, InterruptedException {
+        continueDispatching = true;
+        dataDispatching();
+        return "Data Dispatcher has started";
+    }
+
+    @RequestMapping("/pauseDataDispatcher")
+    public String pauseDataDispatcher() {
+        continueDispatching = false;
+        return "Data Dispatcher has stopped";
+    }
+
+    public void dataDispatching() throws IOException, InterruptedException {
+        continueDispatching = true;
+        String lastDataHora = getLastSensorDataDateHora();
+        List<SensorData> dataFromMongo = extractDataFromMongo(lastDataHora);
+        sendDataFromMongo(dataFromMongo);
+        sleep(5000);
+        if (continueDispatching)
+            dataDispatching();
+    }
 
     @PostMapping("/addSensorData")
     public String saveBook(@RequestBody SensorData medicao) {
@@ -78,7 +98,7 @@ public class SensorController {
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         System.out.println(response.body());
 
-        extractDataFromMongo(response.body());
+//        extractDataFromMongo(response.body());
 
         return response.body();
     }
@@ -97,14 +117,25 @@ public class SensorController {
         System.out.println(response.body());
     }
 
-    public void extractDataFromMongo(String date) throws IOException, InterruptedException {
-//        DataValidator dataValidator = new DataValidator();
-        for (SensorData sensorData: repository.findSensorDataByDataAfter(date) ){
-            String mqtt =  env.getProperty("mqtt");
+    public List<SensorData> extractDataFromMongo(String lastDataHora) throws IOException, InterruptedException {
+        String date0 = lastDataHora.replace("\"", "");
+        String date1 = lastDataHora.replace("\"", "").replace("+01:00", "Z");
+        List<SensorData> sensorDataList = repository.func(date0, date1);
+        System.out.println(sensorDataList.size());
+
+        return sensorDataList;
+
+//
+    }
+
+    public void sendDataFromMongo(List<SensorData> dataFromMongo) throws IOException, InterruptedException {
+        String mqtt =  env.getProperty("mqtt");
+        for (SensorData sensorData: dataFromMongo){
             if (mqtt.equals("true"))
                 mqttController.publish(sensorData);
             else
                 sendSensorDataDirect(sensorData);
-        };
+        }
     }
+
 }

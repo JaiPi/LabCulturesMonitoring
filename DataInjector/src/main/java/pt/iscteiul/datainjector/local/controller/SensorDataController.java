@@ -8,7 +8,10 @@ import pt.iscteiul.datainjector.local.entity.SensorData;
 import pt.iscteiul.datainjector.local.repository.SensorDataRepository;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,8 +33,13 @@ public class SensorDataController {
     }
 
     @GetMapping("/lastSensorDataEntry")
-    public Timestamp lastSensorDataEntry() {
-        return sensorRepository.findTopByOrderByDatahoraDesc().getDatahora();
+    public ZonedDateTime lastSensorDataEntry() {
+        Instant instant = sensorRepository.findTopByOrderByDatahoraDesc().getDatahora().toInstant();
+        ZoneId europeLisbon = ZoneId.of("Europe/Lisbon");
+        ZonedDateTime timeEuropeLisbon = ZonedDateTime.ofInstant(instant, europeLisbon);
+        System.out.println(timeEuropeLisbon);
+
+        return timeEuropeLisbon;
     }
 
     @PostMapping("/receiveSensorData")
