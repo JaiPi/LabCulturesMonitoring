@@ -24,6 +24,7 @@ public class SensorData {
     @Column(name="DataHora")
     private Timestamp datahora;
     private float Leitura;
-    private int Valido;
+    @Column(name="Valido")
+    private int valido;
 
 }

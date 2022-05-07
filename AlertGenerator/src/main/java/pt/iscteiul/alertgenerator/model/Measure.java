@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 
-public class Mediana {
+public class Measure {
+    private int zona;
     private String sensor;
     private Float valor;
 }

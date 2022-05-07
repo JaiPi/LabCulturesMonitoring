@@ -31,7 +31,7 @@ public class AlertController {
 
     @GetMapping("/generateRealTimeAlerts")
     public String generateRealTimeAlerts() throws InterruptedException {
-        alertService.generateRealTimeAlert();
+        alertService.startRealTimeAlert();
         return "Generating Real Time Alerts";
     }
 

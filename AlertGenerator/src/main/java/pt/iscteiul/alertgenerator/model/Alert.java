@@ -28,6 +28,7 @@ public class Alert {
     @Column(name="Descricao")
     private String descricao;
     private int IDUtilizador;
-    private int IDCultura;
+    @Column(name="IDCultura")
+    private int idcultura;
 
 }
