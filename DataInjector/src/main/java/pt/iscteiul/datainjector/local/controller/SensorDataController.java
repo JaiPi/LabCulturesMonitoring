@@ -34,11 +34,20 @@ public class SensorDataController {
 
     @GetMapping("/lastSensorDataEntry")
     public ZonedDateTime lastSensorDataEntry() {
-        Instant instant = sensorRepository.findTopByOrderByDatahoraDesc().getDatahora().toInstant();
-        ZoneId europeLisbon = ZoneId.of("Europe/Lisbon");
-        ZonedDateTime timeEuropeLisbon = ZonedDateTime.ofInstant(instant, europeLisbon);
-        System.out.println(timeEuropeLisbon);
+        ZonedDateTime timeEuropeLisbon = null;
+        try {
+            Instant instant = sensorRepository.findTopByOrderByDatahoraDesc().getDatahora().toInstant();
+            ZoneId europeLisbon = ZoneId.of("Europe/Lisbon");
+            timeEuropeLisbon = ZonedDateTime.ofInstant(instant, europeLisbon);
+            System.out.println(timeEuropeLisbon);
 
+        } catch (Exception e) {
+            Timestamp dataHora = new Timestamp(System.currentTimeMillis());
+            Instant instant = dataHora.toInstant();
+            ZoneId europeLisbon = ZoneId.of("Europe/Lisbon");
+            timeEuropeLisbon = ZonedDateTime.ofInstant(instant, europeLisbon);
+            System.out.println(timeEuropeLisbon);
+        }
         return timeEuropeLisbon;
     }
 
@@ -65,7 +74,7 @@ public class SensorDataController {
         sensorData.setIDSensor(json.get("Sensor").toString().replace("\"", ""));
         sensorData.setDatahora(timestamp);
         sensorData.setLeitura(Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue());
-        sensorData.setValido(0);
+        sensorData.setValido(1);
 
         saveSensorData(sensorData);
     }

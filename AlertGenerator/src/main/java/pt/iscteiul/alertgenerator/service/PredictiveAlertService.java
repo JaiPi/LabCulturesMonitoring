@@ -7,22 +7,15 @@ import org.springframework.stereotype.Service;
 import pt.iscteiul.alertgenerator.dao.AlertDao;
 import pt.iscteiul.alertgenerator.dao.CultureDao;
 import pt.iscteiul.alertgenerator.dao.SensorDataDao;
-import pt.iscteiul.alertgenerator.dao.UserDao;
-import pt.iscteiul.alertgenerator.model.Alert;
-import pt.iscteiul.alertgenerator.model.Culture;
-import pt.iscteiul.alertgenerator.model.Measure;
-import pt.iscteiul.alertgenerator.model.SensorData;
+import pt.iscteiul.alertgenerator.model.*;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Thread.sleep;
 
 @Service
-public class AlertService {
+public class PredictiveAlertService {
 
     @Value("${zonas}")
     private String[] zonas;
@@ -42,32 +35,21 @@ public class AlertService {
     @Autowired
     private SensorDataDao sensorDataDao;
 
-    private boolean keepGeneratingRealTimeAlerts;
-    private Timestamp lastRealTimeAlert;
-    private String lastRealTimeAlertType;
-
     private boolean keepGeneratingPredictiveAlerts;
     private Timestamp lastPredictiveAlert;
     private String lastPredictiveAlertType;
 
     @Async
-    public void startRealTimeAlert() throws InterruptedException {
-        lastRealTimeAlert = new Timestamp(System.currentTimeMillis());
-        lastRealTimeAlertType="";
-        keepGeneratingRealTimeAlerts = true;
-        while (keepGeneratingRealTimeAlerts) {
-            System.out.println(lastRealTimeAlert);
-            System.out.println(lastRealTimeAlertType);
-            generateRealTimeAlert();
+    public void startPredictiveAlert() throws InterruptedException {
+        lastPredictiveAlert = new Timestamp(System.currentTimeMillis());
+        lastPredictiveAlertType="";
+        keepGeneratingPredictiveAlerts = true;
+        while (keepGeneratingPredictiveAlerts) {
+            System.out.println(lastPredictiveAlert);
+            System.out.println(lastPredictiveAlertType);
+            generatePredictiveAlert();
             sleep(2000);
         }
-    }
-
-    public void generateRealTimeAlert() {
-        Thread.currentThread().setName("Real Time Thread");
-        List<SensorData> sensorDataList = extractSensorData(20);
-        ArrayList<Measure> medianas = getMedianas(sensorDataList);
-        medianAnalisys(medianas);
     }
 
     @Async
@@ -89,7 +71,10 @@ public class AlertService {
         System.out.println(Thread.currentThread().getName() + ": analysing sensor data since " + dataHoraSince);
 
 //        List<SensorData> sensorDataList = sensorDataDao.findSensorDataByDatahoraAfter(dataHoraSince);
-        List<SensorData> sensorDataList = sensorDataDao.findSensorDataByDatahoraAfterAndAndValidoEquals(dataHoraSince, 1);
+//        List<SensorData> sensorDataList = sensorDataDao.findSensorDataByDatahoraAfterAndAndValidoEquals(dataHoraSince, 1);
+
+        List<SensorData> sensorDataList = sensorDataDao.findSensorDataByDatahoraAfterAndAndValidoEqualsOrderByDatahoraAsc(dataHoraSince, 1);
+
 
         return sensorDataList;
     }
@@ -101,25 +86,20 @@ public class AlertService {
             int zona = Integer.parseInt(zonaString.replace("Z", ""));
 
             for (String sensor : sensores) {
-                ArrayList<Float> values = new ArrayList<Float>();
+                ArrayList<LinearRegression> linearRegressionArrayList = new ArrayList<LinearRegression>();
 
                 for (SensorData sensorData : sensorDataList) {
                     if (zona == sensorData.getIDZona() &&
                             sensor.equals(sensorData.getIDSensor())) {
-                        values.add(sensorData.getLeitura());
+                        linearRegressionArrayList.add(new LinearRegression(sensorData.getLeitura(), sensorData.getDatahora(), null));
                     }
                 }
-
-                Collections.sort(values);
 
                 Measure mediana = null;
 
                 try {
-                    float median = 0;
-                    if (values.size() % 2 == 0)
-                        median = (values.get(values.size() / 2) + values.get(values.size() / 2 - 1)) / 2;
-                    else
-                        median = values.get(values.size() / 2);
+                    float median = getPrediction(linearRegressionArrayList);
+                    System.out.println(median);
 
                     mediana = new Measure(zona, sensor, median);
                 } catch (Exception e) {
@@ -130,6 +110,34 @@ public class AlertService {
             }
         }
         return medianas;
+    }
+
+    private float getPrediction(ArrayList<LinearRegression> linearRegressionArrayList) {
+        Float meanX = 0f;
+        Float meanY = 0f;
+        for (LinearRegression linearRegression: linearRegressionArrayList) {
+            linearRegression.setX((linearRegression.getDate().getTime() - linearRegressionArrayList.get(0).getDate().getTime()) / 1000);
+            meanX += linearRegression.getX();
+            meanY += linearRegression.getY();
+        }
+        meanX = meanX / linearRegressionArrayList.size();
+        meanY = meanY / linearRegressionArrayList.size();
+
+        Float b1Numerator = 0f;
+        Float b1Denominator = 0f;
+
+        for (LinearRegression linearRegression: linearRegressionArrayList) {
+            b1Numerator += (linearRegression.getX() - meanX) * (linearRegression.getY() - meanY);
+            b1Denominator += (linearRegression.getX() - meanX) * (linearRegression.getX() - meanX);
+        }
+
+        float b1 = b1Numerator / b1Denominator;
+
+        float b0 = meanY - (b1 * meanX);
+
+        float prediction = b1 * 3600 + b0;
+
+        return prediction;
     }
 
     private void medianAnalisys(ArrayList<Measure> medianas) {
@@ -167,17 +175,17 @@ public class AlertService {
 
         Timestamp dataHora = new Timestamp(System.currentTimeMillis());
         Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(lastRealTimeAlert.getTime());
+        cal.setTimeInMillis(lastPredictiveAlert.getTime());
 
         cal.add(Calendar.SECOND, Integer.parseInt(threshold));
         Timestamp threshold = new Timestamp(cal.getTime().getTime());
 
         System.out.println(dataHora);
-        System.out.println(lastRealTimeAlert);
+        System.out.println(lastPredictiveAlert);
         System.out.println(threshold);
         System.out.println(threshold.compareTo(dataHora));
 
-        if (threshold.compareTo(dataHora) < 0 || !lastRealTimeAlertType.equals("H")) {
+        if (threshold.compareTo(dataHora) < 0 || !lastPredictiveAlertType.equals("H")) {
             if (mediana.getValor() <= culture.getMinhumidade()) {
                 alertDao.save(new Alert(
                         0,
@@ -186,11 +194,11 @@ public class AlertService {
                         dataHora,
                         "H",
                         culture.getNomecultura(),
-                        "0 min",
+                        "0 minp",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "H";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "H";
                 return;
             }
 
@@ -202,11 +210,11 @@ public class AlertService {
                         dataHora,
                         "H",
                         culture.getNomecultura(),
-                        "0 max",
+                        "0 maxp",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "H";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "H";
                 return;
             }
 
@@ -221,8 +229,8 @@ public class AlertService {
                         "1 min",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "H";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "H";
                 return;
             }
 
@@ -237,13 +245,13 @@ public class AlertService {
                         "1 max",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "H";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "H";
                 return;
             }
         }
 
-        if (threshold.compareTo(dataHora) < 0 || (!lastRealTimeAlertType.equals("M") && !lastRealTimeAlertType.equals("H"))) {
+        if (threshold.compareTo(dataHora) < 0 || (!lastPredictiveAlertType.equals("M") && !lastPredictiveAlertType.equals("H"))) {
             if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.10)) {
                 alertDao.save(new Alert(
                         0,
@@ -255,8 +263,8 @@ public class AlertService {
                         "2 min",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "M";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "M";
                 return;
             }
 
@@ -271,8 +279,8 @@ public class AlertService {
                         "2 max",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "M";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "M";
                 return;
             }
         }
@@ -289,8 +297,8 @@ public class AlertService {
                         "3 min",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "L";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "L";
             }
 
             else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.20)) {
@@ -304,20 +312,20 @@ public class AlertService {
                         "3 max",
                         culture.getIDUtilizador(),
                         culture.getIDCultura()));
-                lastRealTimeAlert = dataHora;
-                lastRealTimeAlertType = "L";
+                lastPredictiveAlert = dataHora;
+                lastPredictiveAlertType = "L";
             }
         }
 
     }
 
     private void lightAnalisys(Measure measure, Culture culture) {
-        if (measure.getValor() > culture.getMaxluz() ||
-                measure.getValor() < culture.getMinluz())
-            System.out.println("primeiro test");
-        System.out.println("ad");
-        float magnitude = Math.abs(culture.getMaxhumidade() - culture.getMinhumidade());
-        System.out.println(magnitude);
+//        if (measure.getValor() > culture.getMaxluz() ||
+//                measure.getValor() < culture.getMinluz())
+//            System.out.println("primeiro test");
+//        System.out.println("ad");
+//        float magnitude = Math.abs(culture.getMaxhumidade() - culture.getMinhumidade());
+//        System.out.println(magnitude);
     }
 
     private List<Culture> getCultures() {

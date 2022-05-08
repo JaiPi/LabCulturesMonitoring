@@ -13,4 +13,6 @@ public interface SensorDataDao extends JpaRepository<SensorData, Integer> {
     List<SensorData> findSensorDataByDatahoraAfter(Timestamp timestamp);
 
     List<SensorData> findSensorDataByDatahoraAfterAndAndValidoEquals(Timestamp timestamp, int valido);
+
+    List<SensorData> findSensorDataByDatahoraAfterAndAndValidoEqualsOrderByDatahoraAsc(Timestamp timestamp, int valido);
 }

@@ -131,10 +131,20 @@ public class SensorController {
     public void sendDataFromMongo(List<SensorData> dataFromMongo) throws IOException, InterruptedException {
         String mqtt =  env.getProperty("mqtt");
         for (SensorData sensorData: dataFromMongo){
-            if (mqtt.equals("true"))
-                mqttController.publish(sensorData);
-            else
-                sendSensorDataDirect(sensorData);
+            if (!sensorData.getId().isEmpty() &&
+                    !sensorData.getZona().isEmpty() &&
+                    !sensorData.getSensor().isEmpty()
+            ) {
+                try {
+                    float medicao = Float.valueOf(sensorData.getMedicao()).floatValue();
+                } catch (Exception e) {
+                    sensorData.setMedicao(null);
+                }
+                if (mqtt.equals("true"))
+                    mqttController.publish(sensorData);
+                else
+                    sendSensorDataDirect(sensorData);
+            }
         }
     }
 

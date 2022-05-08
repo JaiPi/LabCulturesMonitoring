@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.iscteiul.alertgenerator.dao.AlertDao;
 import pt.iscteiul.alertgenerator.model.Alert;
 import pt.iscteiul.alertgenerator.service.AlertService;
+import pt.iscteiul.alertgenerator.service.PredictiveAlertService;
 
 import java.util.List;
 
@@ -17,6 +18,9 @@ public class AlertController {
 
     @Autowired
     AlertService alertService;
+
+    @Autowired
+    PredictiveAlertService predictiveAlertService;
 
     @PostMapping("/saveAlert")
     public String saveAlert(@RequestBody Alert alert) {
@@ -37,7 +41,7 @@ public class AlertController {
 
     @GetMapping("/generatePredictiveAlerts")
     public String generatePredictiveAlerts() throws InterruptedException {
-        alertService.generatePredictiveAlert();
+        predictiveAlertService.startPredictiveAlert();
         return "Generating Predictive Alerts";
     }
 }

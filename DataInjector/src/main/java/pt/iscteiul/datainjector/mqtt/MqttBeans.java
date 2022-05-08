@@ -92,7 +92,7 @@ public class MqttBeans {
                     sensorData.setIDSensor(json.get("Sensor").toString().replace("\"", ""));
                     sensorData.setDatahora(timestamp);
                     sensorData.setLeitura(Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue());
-                    sensorData.setValido(0);
+                    sensorData.setValido(1);
 
                     sensorDataController.saveSensorData(sensorData);
                 }
