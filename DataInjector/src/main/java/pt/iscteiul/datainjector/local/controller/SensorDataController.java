@@ -4,6 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import pt.iscteiul.datainjector.cloud.controller.SensorController;
+import pt.iscteiul.datainjector.cloud.controller.ZoneController;
+import pt.iscteiul.datainjector.cloud.entity.Sensor;
+import pt.iscteiul.datainjector.cloud.entity.Zone;
 import pt.iscteiul.datainjector.local.entity.SensorData;
 import pt.iscteiul.datainjector.local.repository.SensorDataRepository;
 
@@ -21,10 +25,41 @@ public class SensorDataController {
     @Autowired
     private SensorDataRepository sensorRepository;
 
+    @Autowired
+    SensorController sensorController;
+
+    @Autowired
+    ZoneController zoneController;
+
     @PostMapping("/saveSensorData")
     public String saveSensorData(@RequestBody SensorData sensorData) {
-        sensorRepository.save(sensorData);
-        return "Add data with id: " + sensorData.getIDMedicao();
+        List<Sensor> sensorList = sensorController.getTicket();
+        List<Zone> zoneList = zoneController.getTicket();
+
+
+        for (Zone zone: zoneList) {
+            for (Sensor sensor: sensorList) {
+                if(sensorData.getIDZona() == zone.getIdzona()) {
+                    String sensorId = sensor.getSensorId().getTipo() + sensor.getSensorId().getIdsensor();
+                    if(sensorData.getIDSensor().equals(sensorId)) {
+                        if (sensorData.getLeitura() < sensor.getLimitesuperior() &&
+                                sensorData.getLeitura() > sensor.getLimiteinferior())
+                            sensorData.setValido(1);
+                        else {
+                            sensorData.setValido(0);
+                        }
+                        sensorRepository.save(sensorData);
+                    }
+                }
+            }
+        }
+
+
+
+
+
+
+        return "runned save medicao";
     }
 
     @GetMapping("/getSensorData")
@@ -69,12 +104,11 @@ public class SensorDataController {
         Timestamp timestamp = Timestamp.valueOf(localDateTime);
 
         SensorData sensorData = new SensorData();
-//        sensorData.setIDZona(12);
         sensorData.setIDZona(Integer.parseInt(json.get("Zona").toString().replace("\"", "").replace("Z", "")));
         sensorData.setIDSensor(json.get("Sensor").toString().replace("\"", ""));
         sensorData.setDatahora(timestamp);
         sensorData.setLeitura(Float.valueOf(json.get("Medicao").toString().replace("\"", "")).floatValue());
-        sensorData.setValido(1);
+//        sensorData.setValido(1);
 
         saveSensorData(sensorData);
     }

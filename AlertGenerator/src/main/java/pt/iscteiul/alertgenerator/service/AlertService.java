@@ -150,6 +150,7 @@ public class AlertService {
                             break;
                         case 'T':
                             System.out.println('T');
+                            lightAnalisys(mediana, culture);
                             break;
                     }
                 }
@@ -311,13 +312,310 @@ public class AlertService {
 
     }
 
-    private void lightAnalisys(Measure measure, Culture culture) {
-        if (measure.getValor() > culture.getMaxluz() ||
-                measure.getValor() < culture.getMinluz())
-            System.out.println("primeiro test");
-        System.out.println("ad");
+    private void lightAnalisys(Measure mediana, Culture culture) {
         float magnitude = Math.abs(culture.getMaxhumidade() - culture.getMinhumidade());
         System.out.println(magnitude);
+        System.out.println(magnitude * 0.05);
+        System.out.println(magnitude * 0.10);
+        System.out.println(magnitude * 0.20);
+
+        Timestamp dataHora = new Timestamp(System.currentTimeMillis());
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(lastRealTimeAlert.getTime());
+
+        cal.add(Calendar.SECOND, Integer.parseInt(threshold));
+        Timestamp threshold = new Timestamp(cal.getTime().getTime());
+
+        System.out.println(dataHora);
+        System.out.println(lastRealTimeAlert);
+        System.out.println(threshold);
+        System.out.println(threshold.compareTo(dataHora));
+
+        if (threshold.compareTo(dataHora) < 0 || !lastRealTimeAlertType.equals("H")) {
+            if (mediana.getValor() <= culture.getMinhumidade()) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "0 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() >= culture.getMaxhumidade()) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "0 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.05)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "1 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.05)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "1 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+        }
+
+        if (threshold.compareTo(dataHora) < 0 || (!lastRealTimeAlertType.equals("M") && !lastRealTimeAlertType.equals("H"))) {
+            if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.10)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "M",
+                        culture.getNomecultura(),
+                        "2 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "M";
+                return;
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.10)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "M",
+                        culture.getNomecultura(),
+                        "2 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "M";
+                return;
+            }
+        }
+
+        if (threshold.compareTo(dataHora) < 0) {
+            if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.20)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "L",
+                        culture.getNomecultura(),
+                        "3 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "L";
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.20)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "L",
+                        culture.getNomecultura(),
+                        "3 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "L";
+            }
+        }
+
+    }
+
+    private void temperatureAnalisys(Measure mediana, Culture culture) {
+        float magnitude = Math.abs(culture.getMaxhumidade() - culture.getMinhumidade());
+        System.out.println(magnitude);
+        System.out.println(magnitude * 0.05);
+        System.out.println(magnitude * 0.10);
+        System.out.println(magnitude * 0.20);
+
+        Timestamp dataHora = new Timestamp(System.currentTimeMillis());
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(lastRealTimeAlert.getTime());
+
+        cal.add(Calendar.SECOND, Integer.parseInt(threshold));
+        Timestamp threshold = new Timestamp(cal.getTime().getTime());
+
+        System.out.println(dataHora);
+        System.out.println(lastRealTimeAlert);
+        System.out.println(threshold);
+        System.out.println(threshold.compareTo(dataHora));
+
+        if (threshold.compareTo(dataHora) < 0 || !lastRealTimeAlertType.equals("H")) {
+            if (mediana.getValor() <= culture.getMinhumidade()) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "0 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() >= culture.getMaxhumidade()) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "0 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.05)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "1 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.05)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "H",
+                        culture.getNomecultura(),
+                        "1 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "H";
+                return;
+            }
+        }
+
+        if (threshold.compareTo(dataHora) < 0 || (!lastRealTimeAlertType.equals("M") && !lastRealTimeAlertType.equals("H"))) {
+            if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.10)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "M",
+                        culture.getNomecultura(),
+                        "2 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "M";
+                return;
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.10)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "M",
+                        culture.getNomecultura(),
+                        "2 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "M";
+                return;
+            }
+        }
+
+        if (threshold.compareTo(dataHora) < 0) {
+            if (mediana.getValor() < culture.getMinhumidade() + (magnitude * 0.20)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "L",
+                        culture.getNomecultura(),
+                        "3 min",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "L";
+            }
+
+            else if (mediana.getValor() > culture.getMaxhumidade() - (magnitude * 0.20)) {
+                alertDao.save(new Alert(
+                        0,
+                        culture.getIDZona(),
+                        mediana.getSensor(),
+                        dataHora,
+                        "L",
+                        culture.getNomecultura(),
+                        "3 max",
+                        culture.getIDUtilizador(),
+                        culture.getIDCultura()));
+                lastRealTimeAlert = dataHora;
+                lastRealTimeAlertType = "L";
+            }
+        }
+
     }
 
     private List<Culture> getCultures() {
